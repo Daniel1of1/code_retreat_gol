@@ -10,4 +10,14 @@ describe "Any live cell with fewer than two live neighbours dies, as if caused b
 	gof.play
 
 	cell_array.should_be empty
+end
+
+class Cell
+ 	def initialize(x,y)
+ 		@x=x
+ 		@y=y
+ 	end 	
 end 
+
+
+
