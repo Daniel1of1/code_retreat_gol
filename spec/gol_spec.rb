@@ -5,26 +5,33 @@ class Cell
  	def initialize(x,y)
  		@x=x
  		@y=y
- 	end 	
+ 	end
+ 	def is_neighbour? other
+ 		self != other && (other.x-@x).abs<=1 && (other.y-@y).abs<=1
+ 	end
 end 
 
 
 class Gol
-	def initialize(cell_array)
-		@cell_array=cell_array
+	def initialize(cells)
+		@cells=cells
 	end
 
 	def play
 		should_die=[]
-		@cell_array.each do |current_cell|
+		@cells.each do |current_cell|
 			neighbour_count = 0
-			@cell_array.each do |other_cells|
-				neighbour_count += 1 if (other_cells != current_cell && (other_cells.x-current_cell.x).abs<=1 && (other_cells.y-current_cell.y).abs<=1)
+			@cells.each do |other|
+				neighbour_count += 1 if current_cell.is_neighbour? other
 			end
-			should_die << current_cell if (neighbour_count < 2)
+			should_die << current_cell if should_die?(neighbour_count)
 		end
-		@cell_array-=should_die
-		@cell_array
+		@cells-=should_die
+		@cells
+	end
+	private
+	def should_die? neighbour_count
+		(neighbour_count < 2) || (neighbour_count ==4)
 	end
 end
 
@@ -35,12 +42,57 @@ describe "Any live cell with fewer than two live neighbours dies, as if caused b
 	cell=Cell.new(x,y)
 	lonely = Cell.new(44,44)
 	cell_neighbour=Cell.new(x+1,y)
-	cell_array=[cell,cell_neighbour,lonely]
+	cells=[cell,cell_neighbour,lonely]
 
-	gol = Gol.new cell_array
-	cell_array = gol.play
+	gol = Gol.new cells
+	cells = gol.play
 
 	it "should be_empty" do
-		cell_array.should be_empty
+		cells.should be_empty
+	end
+end	
+
+describe Board do 
+	describe "when the cell has 4 neighbours"	do
+		x=666
+		y=666
+
+		cell = Cell.new(x,y)
+		cell_Top=Cell.new(x,y+1)
+		cell_Below=Cell.new(x+1,y)
+		cell_Left=Cell.new(x-1,y)
+		cell_Right=Cell.new(x,y-1)
+
+		cells=[cell,cell_Top,cell_Right,cell_Left,cell_Below]
+
+		gol = Gol.new cells
+		cells = gol.play
+
+		it "should_be_empty" do
+			cells.include?(cell).should be_false
+		end
 	end
 end
+
+describe Board do
+	describe "When an empty grid reference has three neighbours" do
+
+		x=666
+		y=666
+
+		cell_Top=Cell.new(x,y+1)
+		cell_Below=Cell.new(x+1,y)
+		cell_Left=Cell.new(x-1,y)
+
+		cells=[cell_Top,cell_Left,cell_Below]
+
+		gol = Gol.new cells
+		cells = gol.play
+
+		it "should_be_go_forth_and_multiply" do
+			cells.count == 4
+		end
+	end
+end
+
+
